@@ -154,7 +154,7 @@ class Game extends React.Component {
 
 	render() {
     	return (
-			<div className=".container">
+			<div className="container">
 				<h1>{this.state.winner}</h1>
 				<div className="game">
 					<div className="game-board">
