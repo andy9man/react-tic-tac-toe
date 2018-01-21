@@ -97,7 +97,7 @@ class Game extends React.Component {
 		let arr = this.state.board.map( (item, index) => {
 			return {'cellId':index, 'value':null, 'disabled':false};
 		});
-		this.setState({board: arr, winner:''});
+		this.setState({board: arr, winner:'', turn: true, count: 0});
 	}
 
   	getSign() {
@@ -144,7 +144,7 @@ class Game extends React.Component {
 	}
 
 	checkForEqual(a, b, c){
-		return a != null && a === b && b === c ? true : false;
+		return a != null && b != null && c != null && a === b && b === c ? true : false;
 	}
 
 	checkForWinner() {
