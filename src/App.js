@@ -7,6 +7,7 @@ class Player extends React.Component {
 			<div className="player">
 				<label htmlFor={this.props.id}>{this.props.player} Name: </label>
 				<input id={this.props.id} type="text" placeholder={this.props.playerName} onInput={(e) => {this.props.setPlayerName(e.target.value, this.props.id);}}/>
+				 &nbsp; &nbsp;WINS: {this.props.wins}
 			</div>
 		);
 	}
@@ -28,7 +29,7 @@ class Board extends React.Component {
   }
 
   render() {
-    const status = "It is currently: " + this.props.playerName;
+    const status = this.props.playerName + "'s Turn...";
 
     return (
       <div>
@@ -60,8 +61,8 @@ class Game extends React.Component {
 		this.state = {
 
 			player: [
-				{'id':'player1', 'name':'Player 1', 'sign':'X'},
-				{'id':'player2', 'name':'Player 2', 'sign':'O'}
+				{id:'player1', name:'Player 1', wins:0},
+				{id:'player2', name:'Player 2', wins:0}
 			],
 
 			turn: true,
@@ -111,7 +112,7 @@ class Game extends React.Component {
 	setPlayerName(name, playerId) {
 		console.log("SetPlayerName: " + name + "  PlayerID: " + playerId);
 		let arr = this.state.player.map( item => {
-			return playerId === item.id ? {'id':item.id, 'name':name} : item;
+			return playerId === item.id ? {id:item.id, name:name, wins:item.wins} : item;
 		});
 		this.setState({player: arr}, () => { console.log(this.state.player); });
 	}
@@ -127,59 +128,82 @@ class Game extends React.Component {
 		this.setState({board: arr, turn:!this.state.turn, count: parseInt(this.state.count, 10)+1} , () => {
       		this.processWinner(this.state.board, this.state.count);
 		});
-		this.processWinner();
-		console.log("WINNER?: " + this.state.winner);
 
 	}
 
 	processWinner(board, count) {
 		console.log("Count: " + count);
-		if(this.checkForWinner()) {
+		const checkWinner = this.checkForWinner();
+
+		if(checkWinner.winner) {
+			console.log(this.state.player);
+			//Get winning player name and the index based on cell value
+			const player = ( (index) => {
+				return {name: this.state.player[index].name, index: index};
+			})( checkWinner.winnerSign === 'X' ? 0 : 1 );
+
+			//Get a new player array with updated wins count for winning player
+			const playerArr = this.state.player.map( (item, index) => {
+				return index === player.index ? {id:item.id, name:item.name, wins:parseInt(item.wins, 10)+1} : item;
+			});
+			console.log("New Player Array: ");
+			console.log(playerArr);
+			//We have a winner so let's disable the board
 			document.getElementById("game-board").classList.add('disabled');
-			this.setState({winner:"We have a WINNER!!"});
+
+			//Last, let's update the state with winning message and update the player array
+			this.setState({winner:"We have a WINNER... " + player.name + "!!", player: playerArr});
 		}
 		else if(count === 9){
 			this.setState({winner:"We have a draw..."});
 		}
 	}
 
+	/*
+		- Takes 3 values and compares them to see if they are equal and not null
+			- Returns true or false
+	*/
 	checkForEqual(a, b, c){
 		return a != null && b != null && c != null && a === b && b === c ? true : false;
 	}
 
+	/*
+		- Checks for a winner based on they 8 possible tic-tac-toe winning scenarios
+			- Returns object with winner true or false and the sign
+	*/
 	checkForWinner() {
 		console.log("Checking for winner...");
 		if(this.checkForEqual(this.state.board[0].value, this.state.board[1].value,
 			this.state.board[2].value)) {
-			return true;
+			return {winner: true, winnerSign: this.state.board[0].value};
 		}
 		else if(this.checkForEqual(this.state.board[3].value,
 			this.state.board[4].value, this.state.board[5].value)) {
-			return true;
+			return {winner: true, winnerSign: this.state.board[3].value};
 		}
 		else if(this.checkForEqual(this.state.board[6].value,
 			this.state.board[7].value, this.state.board[8].value)) {
-			return true;
+			return {winner: true, winnerSign: this.state.board[6].value};
 		}
 		else if(this.checkForEqual(this.state.board[0].value, this.state.board[3].value,
 			this.state.board[6].value)) {
-			return true;
+			return {winner: true, winnerSign: this.state.board[0].value};
 		}
 		else if(this.checkForEqual(this.state.board[1].value,
 			this.state.board[4].value, this.state.board[7].value)) {
-			return true;
+			return {winner: true, winnerSign: this.state.board[1].value};
 		}
 		else if(this.checkForEqual(this.state.board[2].value, this.state.board[5].value, this.state.board[8].value)) {
-			return true;
+			return {winner: true, winnerSign: this.state.board[2].value};
 		}
 		else if(this.checkForEqual(this.state.board[0].value, this.state.board[4].value, this.state.board[8].value)) {
-			return true;
+			return {winner: true, winnerSign: this.state.board[0].value};
 		}
 		else if(this.checkForEqual(this.state.board[2].value, this.state.board[4].value, this.state.board[6].value)) {
-			return true;
+			return {winner: true, winnerSign: this.state.board[2].value};
 		}
 
-		return false;
+		return {winner: false, winnerSign: ''};
 	}
 
 	render() {
@@ -189,7 +213,7 @@ class Game extends React.Component {
 				<div id="playerInfo">
 					{this.state.player.map( (item, index) => {
 						return (
-							<Player key={index} id={this.state.player[index].id} player={"Player " + (index + 1)} playerName={this.state.player[index].name} setPlayerName={this.setPlayerName} />
+							<Player key={index} id={this.state.player[index].id} player={"Player " + (index + 1)} playerName={this.state.player[index].name} setPlayerName={this.setPlayerName} wins={this.state.player[index].wins} />
 						);
 					})}
 					<button id="resetButton" onClick={this.resetBoard} className="float-r">&#8635;</button>
